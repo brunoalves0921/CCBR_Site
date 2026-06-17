@@ -1,0 +1,47 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // APAGAMOS A LINHA 'url = env(...)' DAQUI!
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String   // Senha em hash
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cupom {
+  id          String   @id @default(cuid())
+  codigo      String   @unique
+  desconto    Float    
+  ativo       Boolean  @default(true)
+  vencimento  DateTime?
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  MEMBER
+  VIP
+  STAFF
+  ADMIN
+}
+
+// Nossa nova tabela
+model SitePin {
+  id         Int      @id @default(autoincrement())
+  playerNick String   @map("player_nick") @db.VarChar(16)
+  pinCode    String   @unique @map("pin_code") @db.VarChar(6)
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@map("site_pins")
+}
