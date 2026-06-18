@@ -2,14 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-    const session = request.cookies.get('ccbr_session');
-    const protectedRoutes = ['/checkout', '/carrinho', '/loja/comprar', '/admin'];
-    const isProtectedRoute = protectedRoutes.some(route => 
-        request.nextUrl.pathname.startsWith(route)
-    );
+    const token = request.cookies.get('ccbr_session')?.value;
+    const pathname = request.nextUrl.pathname;
 
-    if (isProtectedRoute && !session) {
-        return NextResponse.redirect(new URL('/login', request.url));
+    if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin') || pathname.startsWith('/api/checkout')) {
+        if (!token) {
+            if (pathname.startsWith('/api/')) {
+                return NextResponse.json({ error: 'Acesso negado. Não autenticado.' }, { status: 401 });
+            }
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
     }
 
     return NextResponse.next();
@@ -17,6 +19,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
-    ],
+        '/admin/:path*',
+        '/api/admin/:path*',
+        '/api/checkout/:path*'
+    ]
 };

@@ -19,10 +19,6 @@ async function autenticarAdmin() {
 
 export async function GET() {
     try {
-        if (!await autenticarAdmin()) {
-            return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
-        }
-
         const produtos = await prisma.produto.findMany({
             orderBy: { createdAt: 'desc' }
         });
