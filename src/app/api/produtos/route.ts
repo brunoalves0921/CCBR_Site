@@ -48,7 +48,7 @@ export async function POST(request: Request) {
                 preco: parseFloat(preco),
                 categoria,
                 servidor,
-                comandos: comandos.split(',').map((c: string) => c.trim()),
+                comandos: Array.isArray(comandos) ? comandos : comandos.split(',').map((c: string) => c.trim()),
                 imagem: imagem || null,
                 ativo: true
             }
@@ -70,15 +70,17 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { id, nome, descricao, preco, categoria, servidor, comandos, imagem, ativo } = body;
 
+        if (!id) return NextResponse.json({ error: 'ID não fornecido.' }, { status: 400 });
+
         const produto = await prisma.produto.update({
-            where: { id },
+            where: { id: id },
             data: {
                 nome,
                 descricao,
                 preco: parseFloat(preco),
                 categoria,
                 servidor,
-                comandos: comandos.split(',').map((c: string) => c.trim()),
+                comandos: typeof comandos === 'string' ? comandos.split(',').map((c: string) => c.trim()) : comandos,
                 imagem: imagem || null,
                 ativo: Boolean(ativo)
             }
@@ -100,17 +102,17 @@ export async function DELETE(request: Request) {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
-        if (!id) {
-            return NextResponse.json({ error: 'ID não fornecido.' }, { status: 400 });
-        }
+        if (!id) return NextResponse.json({ error: 'ID não fornecido.' }, { status: 400 });
 
-        await prisma.produto.delete({
-            where: { id }
-        });
+        await prisma.produto.delete({ where: { id } });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Erro ao deletar:', error);
+    } catch (error: any) {
+        if (error.code === 'P2003' || (error.message && error.message.includes('Foreign key constraint'))) {
+            return NextResponse.json({ 
+                error: 'Este produto já foi vendido e não pode ser deletado. Edite-o e desmarque "Produto ativo".' 
+            }, { status: 400 });
+        }
         return NextResponse.json({ error: 'Erro ao deletar produto.' }, { status: 500 });
     }
 }

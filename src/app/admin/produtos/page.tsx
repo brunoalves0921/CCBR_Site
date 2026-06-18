@@ -36,7 +36,7 @@ export default function AdminProdutos() {
 
     const carregarProdutos = async () => {
         try {
-            const res = await fetch('/api/admin/produtos');
+            const res = await fetch('/api/produtos');
             if (res.ok) {
                 const data = await res.json();
                 setProdutos(data);
@@ -59,7 +59,8 @@ export default function AdminProdutos() {
         e.preventDefault();
         setIsLoadingForm(true);
 
-        const url = '/api/admin/produtos';
+        const url = '/api/produtos';
+        // A lógica de edição já está perfeita aqui no seu design!
         const method = editingId ? 'PUT' : 'POST';
         const body = editingId ? { id: editingId, ...formData } : formData;
 
@@ -94,17 +95,19 @@ export default function AdminProdutos() {
             preco: produto.preco.toString(),
             categoria: produto.categoria,
             servidor: produto.servidor,
-            comandos: produto.comandos.join(', '),
+            comandos: Array.isArray(produto.comandos) ? produto.comandos.join(', ') : '',
             imagem: produto.imagem || '',
-            ativo: produto.ativo
+            ativo: Boolean(produto.ativo)
         });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDeleteClick = async (id: string) => {
-        if (!confirm('Tem certeza que deseja excluir permanentemente este produto?')) return;
+        if (!confirm('Tem certeza que deseja tentar excluir permanentemente este produto?')) return;
 
         try {
-            const res = await fetch(`/api/admin/produtos?id=${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/produtos?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
                 alert('Produto removido com sucesso!');
                 carregarProdutos();
@@ -244,9 +247,11 @@ export default function AdminProdutos() {
                                 id="ativo"
                                 checked={formData.ativo}
                                 onChange={e => setFormData({...formData, ativo: e.target.checked})}
-                                className="rounded bg-black/30 border-white/10 text-primary focus:ring-0"
+                                className="rounded bg-black/30 border-white/10 text-primary focus:ring-0 cursor-pointer"
                             />
-                            <label htmlFor="ativo" className="text-xs font-semibold text-gray-300 select-none cursor-pointer">Produto ativo e visível na loja</label>
+                            <label htmlFor="ativo" className="text-xs font-semibold text-gray-300 select-none cursor-pointer">
+                                Produto ativo e visível na loja
+                            </label>
                         </div>
 
                         <button 
