@@ -1,19 +1,16 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  // APAGAMOS A LINHA 'url = env(...)' DAQUI!
 }
 
 model User {
   id        String   @id @default(cuid())
   username  String   @unique
   email     String   @unique
-  password  String   // Senha em hash
+  password  String   
   role      Role     @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -22,7 +19,7 @@ model User {
 model Cupom {
   id          String   @id @default(cuid())
   codigo      String   @unique
-  desconto    Float    
+  desconto    Float 
   ativo       Boolean  @default(true)
   vencimento  DateTime?
   createdAt   DateTime @default(now())
@@ -35,7 +32,6 @@ enum Role {
   ADMIN
 }
 
-// Nossa nova tabela
 model SitePin {
   id         Int      @id @default(autoincrement())
   playerNick String   @map("player_nick") @db.VarChar(16)
@@ -44,4 +40,69 @@ model SitePin {
   expiresAt  DateTime @map("expires_at")
 
   @@map("site_pins")
+}
+
+model Produto {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  preco       Float
+  imagem      String?
+  categoria   String   // Ex: VIP, CASH, KEYS
+  servidor    String   // Ex: SURVIVAL, SKYBLOCK, GLOBAL
+  comandos    String[] // Array de comandos a serem executados no servidor
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  pedidos     PedidoItem[]
+}
+
+model Pedido {
+  id            String   @id @default(cuid())
+  playerNick    String
+  gatewayRef    String?  @unique // ID da transação no Mercado Pago/Stripe
+  status        StatusPedido @default(PENDENTE)
+  total         Float
+  metodoPagto   String?  // Ex: PIX, CARTAO
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  itens         PedidoItem[]
+  entregas      FilaEntrega[]
+}
+
+model PedidoItem {
+  id          String   @id @default(cuid())
+  pedidoId    String
+  produtoId   String
+  quantidade  Int
+  precoUnit   Float
+  pedido      Pedido   @relation(fields: [pedidoId], references: [id])
+  produto     Produto  @relation(fields: [produtoId], references: [id])
+}
+
+model FilaEntrega {
+  id          Int      @id @default(autoincrement())
+  pedidoId    String
+  playerNick  String
+  servidor    String
+  comando     String
+  status      StatusEntrega @default(AGUARDANDO)
+  createdAt   DateTime @default(now())
+  executedAt  DateTime?
+  pedido      Pedido   @relation(fields: [pedidoId], references: [id])
+
+  @@map("fila_entregas")
+}
+
+enum StatusPedido {
+  PENDENTE
+  APROVADO
+  CANCELADO
+  REEMBOLSADO
+}
+
+enum StatusEntrega {
+  AGUARDANDO
+  ENTREGUE
+  FALHA
 }
