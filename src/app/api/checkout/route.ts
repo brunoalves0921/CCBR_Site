@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
         const { items } = await request.json();
 
-        if (!items || items.length === 0) {
+        if (!items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json({ error: 'Carrinho vazio.' }, { status: 400 });
         }
 
@@ -32,14 +32,14 @@ export async function POST(request: Request) {
 
         let total = 0;
         const pedidoItemsData = [];
-        const mpItems = [];
+        const nomesProdutos = []; 
 
         for (const item of items) {
             const produto = produtosDb.find(p => p.id === item.id);
+            
             if (produto) {
                 const quantidade = item.quantidade || 1;
 
-                // CÁLCULO COM DESCONTO AQUI
                 const precoFinal = produto.desconto && produto.desconto > 0
                     ? produto.preco * (1 - produto.desconto / 100)
                     : produto.preco;
@@ -50,16 +50,14 @@ export async function POST(request: Request) {
                 pedidoItemsData.push({
                     produtoId: produto.id,
                     quantidade: quantidade,
-                    precoUnit: precoFinal // Salva o valor com desconto no pedido
+                    precoUnit: precoFinal
                 });
 
-                mpItems.push({
-                    id: produto.id,
-                    title: produto.desconto && produto.desconto > 0 ? `${produto.nome} (-${produto.desconto}%)` : produto.nome,
-                    quantity: quantidade,
-                    unit_price: parseFloat(precoFinal.toFixed(2)),
-                    currency_id: 'BRL'
-                });
+                const nomeComDesconto = produto.desconto && produto.desconto > 0 
+                    ? `${produto.nome} (-${produto.desconto}%)` 
+                    : produto.nome;
+                
+                nomesProdutos.push(`${quantidade}x ${nomeComDesconto}`);
             }
         }
 
@@ -73,6 +71,22 @@ export async function POST(request: Request) {
             }
         });
 
+        // Usando o bullet point (•) para separar os itens na mesma linha com clareza
+        let tituloMP = nomesProdutos.join('  •  ');
+        
+        if (tituloMP.length > 250) {
+            tituloMP = tituloMP.substring(0, 247) + '...';
+        }
+
+        const mpItemAggregated = {
+            id: pedido.id,
+            title: tituloMP,
+            description: "Pedido na loja CCBR", 
+            quantity: 1,
+            unit_price: parseFloat(total.toFixed(2)),
+            currency_id: 'BRL'
+        };
+
         const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
         const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
 
@@ -83,12 +97,13 @@ export async function POST(request: Request) {
         const preference = new Preference(client);
         const response = await preference.create({
             body: {
-                items: mpItems,
+                items: [mpItemAggregated],
                 external_reference: pedido.id,
+                // Corrigido: Agora ele volta para a raiz da loja de forma segura
                 back_urls: {
-                    success: `${siteUrl}/loja/sucesso`,
-                    failure: `${siteUrl}/loja/falha`,
-                    pending: `${siteUrl}/loja/pendente`
+                    success: `${siteUrl}/loja?status=sucesso`,
+                    failure: `${siteUrl}/loja?status=falha`,
+                    pending: `${siteUrl}/loja?status=pendente`
                 },
                 auto_return: 'approved',
                 notification_url: `${siteUrl}/api/webhook/mercadopago`
