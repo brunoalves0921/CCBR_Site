@@ -38,20 +38,26 @@ export async function POST(request: Request) {
             const produto = produtosDb.find(p => p.id === item.id);
             if (produto) {
                 const quantidade = item.quantidade || 1;
-                const precoTotalItem = produto.preco * quantidade;
+
+                // CÁLCULO COM DESCONTO AQUI
+                const precoFinal = produto.desconto && produto.desconto > 0
+                    ? produto.preco * (1 - produto.desconto / 100)
+                    : produto.preco;
+
+                const precoTotalItem = precoFinal * quantidade;
                 total += precoTotalItem;
 
                 pedidoItemsData.push({
                     produtoId: produto.id,
                     quantidade: quantidade,
-                    precoUnit: produto.preco
+                    precoUnit: precoFinal // Salva o valor com desconto no pedido
                 });
 
                 mpItems.push({
                     id: produto.id,
-                    title: produto.nome,
+                    title: produto.desconto && produto.desconto > 0 ? `${produto.nome} (-${produto.desconto}%)` : produto.nome,
                     quantity: quantidade,
-                    unit_price: produto.preco,
+                    unit_price: parseFloat(precoFinal.toFixed(2)),
                     currency_id: 'BRL'
                 });
             }
@@ -69,9 +75,9 @@ export async function POST(request: Request) {
 
         const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
         const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
-        
-        const siteUrl = isLocalhost 
-            ? 'https://site-teste-ccbr.com.br' 
+
+        const siteUrl = isLocalhost
+            ? 'https://site-teste-ccbr.com.br'
             : baseUrl.replace(/['"]/g, '').trim().replace(/\/$/, '');
 
         const preference = new Preference(client);

@@ -44,9 +44,11 @@ model SitePin {
 
 model Produto {
   id          String   @id @default(cuid())
+  ordem     Int      @default(0)
   nome        String
   descricao   String?
   preco       Float
+  desconto    Int?     @default(0)
   imagem      String?
   categoria   String   // Ex: VIP, CASH, KEYS
   servidor    String   // Ex: SURVIVAL, SKYBLOCK, GLOBAL

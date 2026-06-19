@@ -68,7 +68,7 @@ export default function Home() {
   return (
     <main className="mt-[80px]">
       
-      {/* Seção Principal (Hero) - Sem linhas divisórias */}
+      {/* ================= HERO SECTION ================= */}
       <section className="relative min-h-[80vh] md:min-h-[800px] flex items-center justify-center overflow-hidden pt-32 pb-24">
         <div className="absolute inset-0 z-0">
           <img
@@ -101,9 +101,10 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch mt-6 w-full md:w-auto relative z-20">
-            <Link href="/loja" className="flex items-center justify-center px-12 py-4 bg-primary text-background font-display-lg text-xl uppercase font-black rounded-lg hover:bg-secondary-fixed transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(140,218,112,0.3)] tracking-wide">
-              JOGUE AGORA
-            </Link>
+            <a href="#modos" className="flex items-center justify-center gap-3 px-12 py-4 bg-primary text-[#0A1A08] font-display-lg text-xl uppercase font-black rounded-lg hover:bg-white transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(140,218,112,0.3)] tracking-wide">
+              <span className="material-symbols-outlined text-2xl">explore</span>
+              EXPLORAR REDE
+            </a>
             
             <button 
               onClick={copiarIP}
@@ -125,10 +126,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SEÇÃO DE NOTÍCIAS / ANÚNCIOS */}
+      {/* ================= NOTÍCIAS ================= */}
       <section className="py-24 max-w-[1280px] mx-auto px-6 md:px-12 relative z-20">
-        
-        {/* Cabeçalho da Seção de Anúncios - Sem borda inferior */}
         <div className="mb-12 pb-6">
           <span className="text-primary font-bold text-[11px] tracking-widest uppercase mb-2 flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">campaign</span>
@@ -150,12 +149,9 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
-            
-            {/* Esquerda: Matéria em Destaque (8 Colunas) */}
             {noticiaDestaque && (
               <div className="lg:col-span-8 flex flex-col overflow-hidden">
                 <Link href={`/noticia/${noticiaDestaque.id}`} className="group block w-full">
-                  
                   <div className="w-full aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden relative mb-8">
                     {noticiaDestaque.imagem ? (
                       <img src={noticiaDestaque.imagem} alt={noticiaDestaque.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
@@ -165,27 +161,22 @@ export default function Home() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent"></div>
-                    
                     <div className="absolute bottom-6 left-6 z-10">
                       <span className="bg-primary text-[#0A1A08] font-black px-4 py-1.5 text-[10px] sm:text-xs uppercase tracking-widest rounded-full shadow-lg">
                         {noticiaDestaque.tag || 'ATUALIZAÇÃO'}
                       </span>
                     </div>
                   </div>
-                  
                   <div className="pr-4 md:pr-8 w-full">
                     <span className="text-gray-400 font-bold text-xs uppercase tracking-[0.15em] block mb-4">
                       HOJE, {formatarData(noticiaDestaque.createdAt)}
                     </span>
-                    
                     <h3 className="text-white font-black text-3xl md:text-4xl lg:text-[42px] leading-tight uppercase mb-6 tracking-tight line-clamp-2 break-all">
                       {noticiaDestaque.titulo}
                     </h3>
-                    
                     <p className="text-[#9CA3AF] text-base md:text-lg leading-relaxed mb-8 line-clamp-4 break-words">
                       {noticiaDestaque.conteudo || noticiaDestaque.resumo}
                     </p>
-                    
                     <span className="inline-flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-sm group-hover:gap-4 transition-all">
                       LER MATÉRIA COMPLETA <span className="material-symbols-outlined text-xl">arrow_forward</span>
                     </span>
@@ -194,153 +185,136 @@ export default function Home() {
               </div>
             )}
 
-            {/* Direita: Linha do Tempo (4 Colunas) */}
             <div className="lg:col-span-4 flex flex-col justify-start">
-              
-              <h4 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase mb-6">
-                RECENTES
-              </h4>
-              
+              <h4 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase mb-6">RECENTES</h4>
               <div className="relative flex flex-col h-[500px]">
-                
                 <div className="absolute left-[11px] top-6 bottom-6 w-px bg-[#374151] z-0"></div>
-
                 {noticias.length > 1 && (
-                  <button 
-                    onClick={handlePrev} 
-                    disabled={activeIndex === 0} 
-                    className="w-6 h-6 rounded-full bg-background border border-[#374151] hover:border-gray-400 flex items-center justify-center text-gray-500 hover:text-white disabled:opacity-0 disabled:pointer-events-none transition-all z-10 mb-2 relative left-[0px]"
-                  >
+                  <button onClick={handlePrev} disabled={activeIndex === 0} className="w-6 h-6 rounded-full bg-background border border-[#374151] hover:border-gray-400 flex items-center justify-center text-gray-500 hover:text-white disabled:opacity-0 disabled:pointer-events-none transition-all z-10 mb-2 relative left-[0px]">
                     <span className="material-symbols-outlined text-sm">keyboard_arrow_up</span>
                   </button>
                 )}
-
-                <div 
-                  ref={scrollContainerRef}
-                  className="flex-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10 py-2"
-                >
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10 py-2">
                   <div className="flex flex-col gap-10 relative">
-                    
                     {noticias.map((noticia, index) => {
                       const isActive = index === activeIndex;
-
                       return (
-                        <div 
-                          key={noticia.id} 
-                          id={`news-item-${index}`}
-                          onClick={() => setActiveIndex(index)}
-                          className={`relative group cursor-pointer pl-10 transition-all duration-300 w-full ${isActive ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
-                        >
+                        <div key={noticia.id} id={`news-item-${index}`} onClick={() => setActiveIndex(index)} className={`relative group cursor-pointer pl-10 transition-all duration-300 w-full ${isActive ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}>
                           {isActive ? (
                             <div className="absolute left-[8px] top-1.5 w-2 h-2 rounded-full bg-[#EAB308] shadow-[0_0_10px_rgba(234,179,8,0.8)] z-10"></div>
                           ) : (
                             <div className="absolute left-[8px] top-1.5 w-2 h-2 rounded-full bg-[#4B5563] group-hover:bg-[#9CA3AF] z-10 transition-colors"></div>
                           )}
-                          
                           <span className={`font-bold text-[10px] tracking-widest mb-1.5 block uppercase ${isActive ? 'text-[#EAB308]' : 'text-[#6B7280]'}`}>
                             {formatarData(noticia.createdAt)}
                           </span>
-                          
                           <h5 className={`font-bold text-lg mb-2 leading-tight line-clamp-2 break-all ${isActive ? 'text-white' : 'text-[#D1D5DB] group-hover:text-white'}`}>
                             {noticia.titulo}
                           </h5>
-                          
                           <p className="text-[#9CA3AF] text-[13px] leading-relaxed line-clamp-3 break-words">
                             {noticia.resumo}
                           </p>
                         </div>
                       );
                     })}
-
                   </div>
                 </div>
-
                 {noticias.length > 1 && (
-                  <button 
-                    onClick={handleNext} 
-                    disabled={activeIndex === noticias.length - 1} 
-                    className="w-6 h-6 rounded-full bg-background border border-[#374151] hover:border-gray-400 flex items-center justify-center text-gray-500 hover:text-white disabled:opacity-0 disabled:pointer-events-none transition-all z-10 mt-2 relative left-[0px]"
-                  >
+                  <button onClick={handleNext} disabled={activeIndex === noticias.length - 1} className="w-6 h-6 rounded-full bg-background border border-[#374151] hover:border-gray-400 flex items-center justify-center text-gray-500 hover:text-white disabled:opacity-0 disabled:pointer-events-none transition-all z-10 mt-2 relative left-[0px]">
                     <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
                   </button>
                 )}
-
               </div>
             </div>
-
           </div>
         )}
       </section>
 
-      {/* Grid de Modos de Jogo - Sem a linha divisória no topo */}
-      <section className="py-24 max-w-[1280px] mx-auto px-6 md:px-12">
-        <div className="flex flex-col items-center text-center mb-16 gap-5">
-          <h2 className="font-display-lg text-4xl md:text-5xl font-black uppercase text-white tracking-tight drop-shadow-sm">
+      {/* ================= MODOS DE JOGO ================= */}
+      <section id="modos" className="py-24 max-w-[1280px] mx-auto px-6 md:px-12">
+        
+        <div className="flex flex-col items-center text-center mb-16 gap-4">
+          <span className="text-primary font-bold text-[11px] tracking-widest uppercase flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">explore</span>
+            Escolha seu Caminho
+          </span>
+          <h2 className="text-white font-black text-4xl md:text-5xl uppercase tracking-tight">
             MODOS DE <span className="text-primary">JOGO</span>
           </h2>
-          <p className="font-body-lg text-lg text-gray-400 max-w-2xl font-medium">
-            Explore nossas diversas dimensões competitivas e casuais. Escolha o seu caminho e comece a aventura.
+          <p className="text-gray-400 text-base md:text-lg max-w-2xl mt-2">
+            Explore nossas diversas dimensões competitivas e casuais. Conheça o seu estilo de jogo e veja os detalhes de cada um.
           </p>
-          <div className="flex gap-2 mt-2">
-            <div className="h-2 w-8 bg-primary rounded-full shadow-[0_0_10px_rgba(140,218,112,0.5)]"></div>
-            <div className="h-2 w-8 bg-primary rounded-full shadow-[0_0_10px_rgba(140,218,112,0.5)]"></div>
-            <div className="h-2 w-8 bg-primary rounded-full opacity-30"></div>
-          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="group flex flex-col bg-surface-container rounded-2xl border border-outline-variant p-6 hover-ignite transition-all duration-300 shadow-lg">
-            <div className="aspect-video w-full mb-6 rounded-xl overflow-hidden border border-outline-variant relative">
-              <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Survival Vanilla" src="/banner.webp" />
+          
+          {/* Card 1: Survival */}
+          <Link href="/modos/survival" className="group relative w-full h-[450px] rounded-[2rem] overflow-hidden border border-white/10 hover:border-primary/50 transition-all duration-500 shadow-2xl">
+            <img src="/banner.webp" alt="Survival Vanilla" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent opacity-90 group-hover:opacity-95 transition-opacity"></div>
+            
+            <div className="absolute inset-0 p-8 flex flex-col justify-end">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-primary text-xl">nature</span>
+                <span className="text-primary font-bold text-[10px] tracking-widest uppercase">Mundo Aberto</span>
+              </div>
+              <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-3">Survival Vanilla+</h3>
+              <p className="text-gray-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                Economia real, sistemas de terrenos e proteção. O survival clássico elevado ao próximo nível com dungeons e eventos.
+              </p>
+              
+              <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-widest group-hover:text-primary transition-colors">
+                Ver Detalhes <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-primary text-xl">nature</span>
-              <span className="font-label-caps text-xs text-primary uppercase font-bold tracking-widest">Mundo Aberto</span>
+          </Link>
+
+          {/* Card 2: Skyblock */}
+          <Link href="/modos/skyblock" className="group relative w-full h-[450px] rounded-[2rem] overflow-hidden border border-white/10 hover:border-secondary-fixed/50 transition-all duration-500 shadow-2xl">
+            <img src="/banner.webp" alt="Skyblock" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent opacity-90 group-hover:opacity-95 transition-opacity"></div>
+            
+            <div className="absolute inset-0 p-8 flex flex-col justify-end">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-secondary-fixed text-xl">auto_awesome</span>
+                <span className="text-secondary-fixed font-bold text-[10px] tracking-widest uppercase">Mais Jogado</span>
+              </div>
+              <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-3">Skyblock Épico</h3>
+              <p className="text-gray-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                Crie sua ilha do zero, automatize geradores de recursos, faça parcerias e torne-se o jogador mais rico do servidor.
+              </p>
+              
+              <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-widest group-hover:text-secondary-fixed transition-colors">
+                Ver Detalhes <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
             </div>
-            <h3 className="font-headline-md text-3xl font-bold mb-3 text-white">Survival Vanilla+</h3>
-            <p className="font-body-md text-gray-400 mb-8 flex-grow leading-relaxed">
-              Economia real, sistemas de terrenos e proteção. O survival clássico elevado ao próximo nível.
-            </p>
-            <button className="w-full py-4 rounded-xl bg-surface-container-high border border-outline-variant font-label-caps font-bold text-white hover:bg-primary hover:text-background hover:border-primary transition-all uppercase tracking-widest text-sm">
-              Ver Detalhes
-            </button>
-          </div>
-          <div className="group flex flex-col bg-surface-container rounded-2xl border-2 border-secondary-fixed p-6 enchanted-glint hover:shadow-[0_0_30px_rgba(255,225,109,0.15)] transition-all duration-300">
-            <div className="aspect-video w-full mb-6 rounded-xl overflow-hidden border border-outline-variant relative">
-              <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Skyblock" src="/banner.webp" />
+          </Link>
+
+          {/* Card 3: BedWars */}
+          <Link href="/modos/bedwars" className="group relative w-full h-[450px] rounded-[2rem] overflow-hidden border border-white/10 hover:border-red-400/50 transition-all duration-500 shadow-2xl">
+            <img src="/banner.webp" alt="BedWars" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent opacity-90 group-hover:opacity-95 transition-opacity"></div>
+            
+            <div className="absolute inset-0 p-8 flex flex-col justify-end">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-red-400 text-xl">swords</span>
+                <span className="text-red-400 font-bold text-[10px] tracking-widest uppercase">Competitivo</span>
+              </div>
+              <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-3">BedWars Pro</h3>
+              <p className="text-gray-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                Mapas exclusivos, proteção de cama estratégica e itens especiais. Partidas rápidas com ping perfeito para PvP.
+              </p>
+              
+              <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-widest group-hover:text-red-400 transition-colors">
+                Ver Detalhes <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-secondary-fixed text-xl">auto_awesome</span>
-              <span className="font-label-caps text-xs text-secondary-fixed uppercase font-bold tracking-widest">VIP Em Destaque</span>
-            </div>
-            <h3 className="font-headline-md text-3xl font-bold mb-3 text-secondary-fixed">Skyblock Épico</h3>
-            <p className="font-body-md text-gray-400 mb-8 flex-grow leading-relaxed">
-              Crie sua ilha, automatize recursos e torne-se o jogador mais rico do servidor.
-            </p>
-            <button className="w-full py-4 rounded-xl bg-secondary-fixed text-background font-label-caps font-bold hover:bg-white transition-all uppercase tracking-widest text-sm shadow-md">
-              Jogar Agora
-            </button>
-          </div>
-          <div className="group flex flex-col bg-surface-container rounded-2xl border border-outline-variant p-6 hover-ignite transition-all duration-300 shadow-lg">
-            <div className="aspect-video w-full mb-6 rounded-xl overflow-hidden border border-outline-variant relative">
-              <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="BedWars" src="/banner.webp" />
-            </div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-red-400 text-xl">swords</span>
-              <span className="font-label-caps text-xs text-red-400 uppercase font-bold tracking-widest">Competitivo</span>
-            </div>
-            <h3 className="font-headline-md text-3xl font-bold mb-3 text-white">BedWars Pro</h3>
-            <p className="font-body-md text-gray-400 mb-8 flex-grow leading-relaxed">
-              Mapas exclusivos, proteção de cama e itens especiais. Partidas rápidas com ping zero.
-            </p>
-            <button className="w-full py-4 rounded-xl bg-surface-container-high border border-outline-variant font-label-caps font-bold text-white hover:bg-primary hover:text-background hover:border-primary transition-all uppercase tracking-widest text-sm">
-              Ver Detalhes
-            </button>
-          </div>
+          </Link>
+
         </div>
       </section>
 
-      {/* Seção Call to Action: Comunidade - Fundo limpo, card flutuando em cima */}
+      {/* ================= COMUNIDADE / DISCORD ================= */}
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-[1280px] mx-auto">
           <div className="bg-gradient-to-br from-[#5865F2]/10 via-surface-container-high to-surface-container-low border border-[#5865F2]/20 rounded-[3rem] p-8 md:p-16 relative overflow-hidden shadow-2xl">
