@@ -231,7 +231,7 @@ export default function Home() {
       </section>
 
       {/* ================= MODOS DE JOGO ================= */}
-      <section id="modos" className="py-24 max-w-[1280px] mx-auto px-6 md:px-12">
+      <section id="modos" className="scroll-mt-32 py-24 max-w-[1280px] mx-auto px-6 md:px-12">
         
         <div className="flex flex-col items-center text-center mb-16 gap-4">
           <span className="text-primary font-bold text-[11px] tracking-widest uppercase flex items-center gap-2">
