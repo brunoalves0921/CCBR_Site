@@ -121,3 +121,16 @@ model Noticia {
 
   @@map("noticias")
 }
+
+model Regra {
+  id           String   @id @default(cuid())
+  titulo       String
+  descricao    String
+  categoria    String   @default("Gerais")
+  nivelPunicao String   @default("Advertência") // NOVO CAMPO AQUI!
+  ordem        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("regras")
+}

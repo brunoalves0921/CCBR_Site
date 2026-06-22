@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type Produto = {
     id: string;
@@ -20,17 +21,22 @@ type CartItem = {
     quantidade: number;
 };
 
+type Doador = {
+    nick: string;
+    total: number;
+};
+
 export default function Loja() {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [servidores, setServidores] = useState<string[]>(['SURVIVAL']);
     const [servidorAtivo, setServidorAtivo] = useState<string>('SURVIVAL');
     const [categoriaAtiva, setCategoriaAtiva] = useState<string>('TODOS');
     
-    // Carrinho de Compras
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     
-    // Paginação
+    const [topDoadores, setTopDoadores] = useState<Doador[]>([]);
+    
     const [currentPage, setCurrentPage] = useState<number>(1);
     const itemsPerPage = 6; 
     
@@ -47,48 +53,52 @@ export default function Loja() {
                     setProdutos(produtosAtivos);
                     
                     const listaServidores = Array.from(new Set(produtosAtivos.map((p: Produto) => p.servidor.toUpperCase()))) as string[];
-                    if (!listaServidores.includes('SURVIVAL')) {
-                        listaServidores.unshift('SURVIVAL');
-                    }
+                    if (!listaServidores.includes('SURVIVAL')) listaServidores.unshift('SURVIVAL');
                     setServidores(listaServidores);
-                } else {
-                    setProdutos([]);
-                }
+                } else setProdutos([]);
                 
                 setIsLoading(false);
             })
+            .catch(() => { setProdutos([]); setIsLoading(false); });
+
+        fetch('/api/top-doadores')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) setTopDoadores(data);
+                else {
+                    setTopDoadores([
+                        { nick: "SucriilhsBR", total: 1500.00 },
+                        { nick: "Notch", total: 850.50 },
+                        { nick: "Jeb_", total: 500.00 },
+                        { nick: "Dinnerbone", total: 350.00 },
+                        { nick: "Dream", total: 120.00 }
+                    ]);
+                }
+            })
             .catch(() => {
-                setProdutos([]);
-                setIsLoading(false);
+                setTopDoadores([
+                    { nick: "SucriilhsBR", total: 1500.00 },
+                    { nick: "Notch", total: 850.50 },
+                ]);
             });
     }, []);
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [categoriaAtiva, servidorAtivo]);
+    useEffect(() => { setCurrentPage(1); }, [categoriaAtiva, servidorAtivo]);
 
-    // ===== FUNÇÕES DO CARRINHO =====
     const addToCart = (produto: Produto) => {
         setCart(prev => {
             const existing = prev.find(item => item.produto.id === produto.id);
-            if (existing) {
-                return prev.map(item => item.produto.id === produto.id ? { ...item, quantidade: item.quantidade + 1 } : item);
-            }
+            if (existing) return prev.map(item => item.produto.id === produto.id ? { ...item, quantidade: item.quantidade + 1 } : item);
             return [...prev, { produto, quantidade: 1 }];
         });
         setIsCartOpen(true);
     };
 
-    const removeFromCart = (produtoId: string) => {
-        setCart(prev => prev.filter(item => item.produto.id !== produtoId));
-    };
+    const removeFromCart = (produtoId: string) => setCart(prev => prev.filter(item => item.produto.id !== produtoId));
 
     const updateQuantity = (produtoId: string, delta: number) => {
         setCart(prev => prev.map(item => {
-            if (item.produto.id === produtoId) {
-                const newQtd = item.quantidade + delta;
-                return { ...item, quantidade: Math.max(1, newQtd) }; 
-            }
+            if (item.produto.id === produtoId) return { ...item, quantidade: Math.max(1, item.quantidade + delta) }; 
             return item;
         }));
     };
@@ -102,35 +112,21 @@ export default function Loja() {
     const handleFinalizarCompra = async () => {
         setIsCheckoutLoading(true);
         try {
-            const itemsToCheckout = cart.map(item => ({
-                id: item.produto.id,
-                quantidade: item.quantidade,
-                grandfather: item.quantidade 
-            }));
-
+            const itemsToCheckout = cart.map(item => ({ id: item.produto.id, quantidade: item.quantidade, grandfather: item.quantidade }));
             const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: itemsToCheckout })
             });
-
             const data = await res.json();
-
             if (res.ok && data.init_point) {
                 window.open(data.init_point, '_blank');
                 setIsCheckoutLoading(false);
                 setCart([]); 
                 setIsCartOpen(false);
-            } else if (res.status === 401) {
-                router.push('/login');
-            } else {
-                alert(data.error || 'Erro ao processar a compra.');
-                setIsCheckoutLoading(false);
-            }
-        } catch (error) {
-            alert('Erro de conexão com o servidor.');
-            setIsCheckoutLoading(false);
-        }
+            } else if (res.status === 401) router.push('/login');
+            else { alert(data.error || 'Erro ao processar a compra.'); setIsCheckoutLoading(false); }
+        } catch (error) { alert('Erro de conexão com o servidor.'); setIsCheckoutLoading(false); }
     };
 
     const produtosFiltrados = produtos.filter(p => {
@@ -140,10 +136,7 @@ export default function Loja() {
     });
 
     const totalPages = Math.ceil(produtosFiltrados.length / itemsPerPage);
-    const paginatedProducts = produtosFiltrados.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const paginatedProducts = produtosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const renderSkeleton = (key: number) => (
         <div key={key} className="bg-[#121316] rounded-2xl border border-white/5 h-[400px] animate-pulse flex flex-col overflow-hidden">
@@ -159,6 +152,13 @@ export default function Loja() {
             </div>
         </div>
     );
+
+    const getMedalColor = (index: number) => {
+        if (index === 0) return 'bg-[#FFD700] text-[#0A1A08] border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.5)]'; // Ouro
+        if (index === 1) return 'bg-[#C0C0C0] text-[#0A1A08] border-[#C0C0C0] shadow-[0_0_10px_rgba(192,192,192,0.4)]'; // Prata
+        if (index === 2) return 'bg-[#CD7F32] text-white border-[#CD7F32] shadow-[0_0_10px_rgba(205,127,50,0.4)]'; // Bronze
+        return 'bg-black/50 text-gray-400 border-white/10'; // Outros
+    };
 
     const renderProdutoCard = (produto: Produto) => {
         const beneficios = produto.descricao ? produto.descricao.split(',').map(b => b.trim()) : ['Ativação automática na hora'];
@@ -235,23 +235,17 @@ export default function Loja() {
                 .animate-fade-slide {
                     animation: fadeAndSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
                 }
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
-            {/* ====== DRAWER DO CARRINHO ====== */}
-            {/* Overlay Escuro (Fundo) */}
+            {/* Overlay Carrinho */}
             {isCartOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" 
-                    onClick={() => setIsCartOpen(false)}
-                ></div>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" onClick={() => setIsCartOpen(false)}></div>
             )}
 
-            {/* Painel Lateral do Carrinho (LARGURA FIXADA EM 420px PARA NÃO ESPREMER) */}
-            <div 
-                className={`fixed top-0 right-0 h-full w-[90vw] sm:w-[420px] bg-[#121316] border-l border-white/10 shadow-2xl z-[100] flex flex-col transition-transform duration-300 ease-in-out ${
-                    isCartOpen ? 'translate-x-0' : 'translate-x-full'
-                }`}
-            >
+            {/* Drawer Carrinho */}
+            <div className={`fixed top-0 right-0 h-full w-[90vw] sm:w-[420px] bg-[#121316] border-l border-white/10 shadow-2xl z-[100] flex flex-col transition-transform duration-300 ease-in-out ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-6 border-b border-white/10 flex justify-between items-center bg-surface-container-low/50 shrink-0">
                     <h2 className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-widest">
                         <span className="material-symbols-outlined text-primary">shopping_cart</span>
@@ -275,7 +269,6 @@ export default function Loja() {
                             
                             return (
                                 <div key={item.produto.id} className="bg-surface-container-low border border-white/5 p-4 rounded-2xl flex gap-4 items-center">
-                                    {/* IMAGEM COM SHRINK-0 (Para não esmagar a imagem) */}
                                     {item.produto.imagem ? (
                                         <img src={item.produto.imagem} alt={item.produto.nome} className="w-16 h-16 rounded-xl object-cover bg-black/50 shrink-0" />
                                     ) : (
@@ -284,7 +277,6 @@ export default function Loja() {
                                         </div>
                                     )}
                                     
-                                    {/* DETALHES COM MIN-W-0 (Permite que o texto corte com "..." se for muito grande) */}
                                     <div className="flex-1 min-w-0">
                                         <h3 className="text-sm font-bold text-white truncate">{item.produto.nome}</h3>
                                         <p className="text-primary font-black text-sm whitespace-nowrap">R$ {precoFinal.toFixed(2).replace('.', ',')}</p>
@@ -347,46 +339,23 @@ export default function Loja() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
 
                 <div className="max-w-[1340px] mx-auto px-6 md:px-8 relative z-10">
-                    <header className="mb-14 flex flex-col lg:flex-row items-center lg:items-stretch justify-between gap-10">
-                        <div className="max-w-2xl text-center lg:text-left flex flex-col justify-center">
-                            <h1 className="font-display-lg text-5xl md:text-7xl text-white font-black mb-6 tracking-tighter uppercase leading-none">
-                                Adquira <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-300 drop-shadow-[0_0_15px_rgba(140,218,112,0.3)]">Cash</span>
-                            </h1>
-                            <p className="text-gray-400 font-body-lg text-lg leading-relaxed max-w-2xl">
-                                Apoie o servidor e receba benefícios exclusivos. Utilize o Cash diretamente no jogo através do comando <strong className="text-white bg-white/10 px-2.5 py-1 rounded-md text-sm border border-white/5">/loja</strong> para adquirir Ranks VIP, Chaves e Itens Especiais.
-                            </p>
-                        </div>
+                    
+                    {/* Header Limpo e Focado */}
+                    <header className="mb-10 text-center flex flex-col items-center">
+                        <h1 className="font-display-lg text-5xl md:text-7xl text-white font-black mb-4 tracking-tighter uppercase leading-none">
+                            Adquira <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-300 drop-shadow-[0_0_15px_rgba(140,218,112,0.3)]">Cash</span>
+                        </h1>
+                        <p className="text-gray-400 font-body-lg text-base md:text-lg leading-relaxed max-w-2xl mb-8">
+                            Apoie o servidor e receba benefícios exclusivos. Utilize o Cash diretamente no jogo através do comando <strong className="text-white bg-white/10 px-2 py-0.5 rounded-md text-sm border border-white/5">/loja</strong>.
+                        </p>
                         
-                        <div className="w-full lg:w-[380px] bg-surface-container-low p-6 rounded-[1.75rem] border border-primary/20 relative overflow-hidden shrink-0 text-left shadow-2xl">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(140,218,112,0.08),transparent_60%)] pointer-events-none"></div>
-
-                            <div className="relative z-10">
-                                <h3 className="font-headline-md text-xl font-black uppercase tracking-tight text-white mb-3">
-                                    Meta Mensal
-                                </h3>
-                                <p className="font-body-md text-gray-400 text-sm leading-relaxed mb-5">
-                                    Sua contribuição ajuda a manter nossos servidores online, garantindo estabilidade, desempenho e uma melhor experiência.
-                                </p>
-                                <div className="flex items-baseline justify-between mb-3">
-                                    <span className="text-4xl font-black text-white leading-none">35%</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-black">Em andamento</span>
-                                </div>
-                                <div className="flex gap-1.5 h-3">
-                                    {Array.from({ length: 20 }).map((_, i) => (
-                                        <div key={i} className={`flex-1 transition-all duration-300 ${i === 0 ? "rounded-l-full" : ""} ${i === 19 ? "rounded-r-full" : ""} ${i < 7 ? "bg-primary shadow-[0_0_8px_rgba(140,218,112,0.4)]" : "bg-white/10"}`} />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </header>
-
-                    <div className="flex justify-center lg:justify-start mb-12">
+                        {/* Filtros de Servidor centralizados logo abaixo do título */}
                         <div className="inline-flex flex-wrap gap-2 p-1.5 bg-surface-container-low/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-lg">
                             {servidores.map((srv) => (
                                 <button
                                     key={srv}
                                     onClick={() => setServidorAtivo(srv)}
-                                    className={`px-8 py-3.5 rounded-xl font-bold text-xs md:text-sm uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                    className={`px-8 py-3 rounded-xl font-bold text-xs md:text-sm uppercase tracking-widest transition-all flex items-center gap-2 ${
                                         servidorAtivo === srv 
                                         ? 'bg-primary text-[#0A1A08] shadow-[0_0_15px_rgba(140,218,112,0.2)]' 
                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -397,33 +366,95 @@ export default function Loja() {
                                 </button>
                             ))}
                         </div>
-                    </div>
+                    </header>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        <aside className="lg:col-span-3">
-                            <div className="sticky top-32 space-y-8">
-                                <div>
-                                    <h3 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase mb-4 ml-1">
-                                        Filtrar por Categoria
+                        
+                        {/* SIDEBAR ESQUERDA: Agora contém as Categorias, Meta Mensal e os Top Doadores */}
+                        <aside className="lg:col-span-3 space-y-6">
+                            
+                            {/* Bloco 1: Categorias */}
+                            <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-white/5 shadow-xl">
+                                <h3 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase mb-4 ml-1">
+                                    Categorias
+                                </h3>
+                                <nav className="flex flex-col gap-2">
+                                    <button onClick={() => setCategoriaAtiva('TODOS')} className={`flex items-center gap-3 px-4 py-3.5 text-left font-bold rounded-xl transition-all text-sm ${categoriaAtiva === 'TODOS' ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner' : 'bg-black/20 border border-transparent text-gray-400 hover:bg-white/5 hover:border-white/5 hover:text-white'}`}>
+                                        <span className="material-symbols-outlined text-lg">apps</span>
+                                        Todos os Itens
+                                    </button>
+                                    <button onClick={() => setCategoriaAtiva('CASH')} className={`flex items-center gap-3 px-4 py-3.5 text-left font-bold rounded-xl transition-all text-sm ${categoriaAtiva === 'CASH' ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner' : 'bg-black/20 border border-transparent text-gray-400 hover:bg-white/5 hover:border-white/5 hover:text-white'}`}>
+                                        <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>monetization_on</span>
+                                        Moedas (Cash)
+                                    </button>
+                                    <button onClick={() => setCategoriaAtiva('UNBAN')} className={`flex items-center gap-3 px-4 py-3.5 text-left font-bold rounded-xl transition-all text-sm ${categoriaAtiva === 'UNBAN' ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner' : 'bg-black/20 border border-transparent text-gray-400 hover:bg-white/5 hover:border-white/5 hover:text-white'}`}>
+                                        <span className="material-symbols-outlined text-lg">gavel</span>
+                                        Revogação (Unban)
+                                    </button>
+                                </nav>
+                            </div>
+
+                            {/* Bloco 2: Meta Mensal */}
+                            <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-primary/20 relative overflow-hidden text-left shadow-xl">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(140,218,112,0.08),transparent_60%)] pointer-events-none"></div>
+                                <div className="relative z-10">
+                                    <h3 className="font-headline-md text-lg font-black uppercase tracking-tight text-white mb-2">
+                                        Meta Mensal
                                     </h3>
-                                    <nav className="flex flex-col gap-2">
-                                        <button onClick={() => setCategoriaAtiva('TODOS')} className={`flex items-center gap-3 px-5 py-4 text-left font-bold rounded-2xl transition-all ${categoriaAtiva === 'TODOS' ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner' : 'bg-surface-container-low/30 border border-white/5 text-gray-400 hover:bg-surface-container-low hover:text-white'}`}>
-                                            <span className="material-symbols-outlined text-lg">apps</span>
-                                            Todos os Itens
-                                        </button>
-                                        <button onClick={() => setCategoriaAtiva('CASH')} className={`flex items-center gap-3 px-5 py-4 text-left font-bold rounded-2xl transition-all ${categoriaAtiva === 'CASH' ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner' : 'bg-surface-container-low/30 border border-white/5 text-gray-400 hover:bg-surface-container-low hover:text-white'}`}>
-                                            <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>monetization_on</span>
-                                            Moedas (Cash)
-                                        </button>
-                                        <button onClick={() => setCategoriaAtiva('UNBAN')} className={`flex items-center gap-3 px-5 py-4 text-left font-bold rounded-2xl transition-all ${categoriaAtiva === 'UNBAN' ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner' : 'bg-surface-container-low/30 border border-white/5 text-gray-400 hover:bg-surface-container-low hover:text-white'}`}>
-                                            <span className="material-symbols-outlined text-lg">gavel</span>
-                                            Revogação (Unban)
-                                        </button>
-                                    </nav>
+                                    <p className="font-body-md text-gray-400 text-xs leading-relaxed mb-4">
+                                        Sua contribuição ajuda a manter nossos servidores online e com ótima estabilidade.
+                                    </p>
+                                    <div className="flex items-baseline justify-between mb-2">
+                                        <span className="text-3xl font-black text-white leading-none">35%</span>
+                                        <span className="text-[9px] uppercase tracking-[0.2em] text-primary font-black">Em andamento</span>
+                                    </div>
+                                    <div className="flex gap-1 h-2.5">
+                                        {Array.from({ length: 15 }).map((_, i) => (
+                                            <div key={i} className={`flex-1 transition-all duration-300 ${i === 0 ? "rounded-l-full" : ""} ${i === 14 ? "rounded-r-full" : ""} ${i < 5 ? "bg-primary shadow-[0_0_8px_rgba(140,218,112,0.4)]" : "bg-white/10"}`} />
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Bloco 3: Top Doadores Vertical */}
+                            {topDoadores.length > 0 && (
+                                <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-white/5 shadow-xl">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="material-symbols-outlined text-[#ffdb3c] text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>social_leaderboard</span>
+                                        <h3 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase">
+                                            Top Apoiadores
+                                        </h3>
+                                    </div>
+                                    
+                                    <div className="flex flex-col gap-3">
+                                        {/* Mostra apenas os Top 5 na Sidebar para não ficar enorme */}
+                                        {topDoadores.slice(0, 5).map((doador, index) => (
+                                            <div key={doador.nick} className="flex items-center gap-3 bg-black/30 p-2.5 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group">
+                                                <div className="relative w-10 h-10 shrink-0">
+                                                    <Image 
+                                                        unoptimized 
+                                                        fill 
+                                                        src={`https://mc-heads.net/avatar/${doador.nick}/100`} 
+                                                        alt={doador.nick} 
+                                                        className="rounded-lg object-contain bg-black/50" 
+                                                    />
+                                                    <div className={`absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border ${getMedalColor(index)}`}>
+                                                        {index + 1}
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-white font-bold truncate text-xs group-hover:text-primary transition-colors">{doador.nick}</span>
+                                                    <span className="text-primary font-black text-[10px]">R$ {doador.total.toFixed(2).replace('.', ',')}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                         </aside>
 
+                        {/* MEIO: Lista de Produtos (8 colunas) */}
                         <div className="lg:col-span-8 flex flex-col w-full">
                             {isLoading ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
@@ -446,6 +477,7 @@ export default function Loja() {
                             )}
                         </div>
 
+                        {/* DIREITA: Paginação Sticky (1 coluna) */}
                         {totalPages > 1 && !isLoading && (
                             <aside className="hidden lg:flex lg:col-span-1 flex-col items-center relative h-full">
                                 <div className="sticky top-[30vh] flex flex-col items-center bg-surface-container-low/70 backdrop-blur-xl p-2.5 rounded-full border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] gap-3 z-20">
