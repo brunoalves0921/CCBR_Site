@@ -67,12 +67,13 @@ function LoginForm() {
 
     if (successMessage) {
         return (
-            <div className="flex flex-col items-center justify-center text-center space-y-4 py-10">
+            // A CORREÇÃO FOI APLICADA AQUI: Adicionado w-full na div principal e no parágrafo
+            <div className="flex flex-col items-center justify-center text-center w-full space-y-4 py-10">
                 <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary mb-2">
                     <span className="material-symbols-outlined text-3xl">check_circle</span>
                 </div>
                 <h2 className="text-2xl font-black text-white">Autenticado com Sucesso!</h2>
-                <p className="text-gray-400 text-sm max-w-sm">{successMessage}</p>
+                <p className="text-gray-400 text-sm w-full">{successMessage}</p>
             </div>
         );
     }
@@ -178,7 +179,7 @@ export default function Login() {
                             </h2>
                             <div className="space-y-5">
                                 <div className="flex gap-4">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-black text-black">
+                                    <div className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-primary font-black text-black">
                                         1
                                     </div>
                                     <div>
@@ -192,7 +193,7 @@ export default function Login() {
                                 </div>
 
                                 <div className="flex gap-4">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-black text-black">
+                                    <div className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-primary font-black text-black">
                                         2
                                     </div>
                                     <div>
@@ -206,7 +207,7 @@ export default function Login() {
                                 </div>
 
                                 <div className="flex gap-4">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-black text-black">
+                                    <div className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-primary font-black text-black">
                                         3
                                     </div>
                                     <div>
