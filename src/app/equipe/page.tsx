@@ -37,15 +37,18 @@ export default function Equipe() {
 
     return (
         <main className="min-h-screen pt-32 pb-24 bg-background relative overflow-hidden">
-            {/* Luz de fundo */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
-
             <div className="max-w-[1340px] mx-auto px-6 md:px-8 relative z-10">
                 
-                {/* Header Centralizado (Sem a caixa de suporte) */}
-                <header className="mb-16 text-center">
-                    <h1 className="font-display-lg text-5xl md:text-7xl text-white font-black mb-6 tracking-tighter uppercase leading-none">
-                        Nossa <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-300 drop-shadow-[0_0_15px_rgba(140,218,112,0.3)]">Equipe</span>
+                {/* Header Centralizado */}
+                <header className="mb-16 text-center flex flex-col items-center">
+                    <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-md">
+                        <span className="material-symbols-outlined text-sm text-primary">shield_person</span>
+                        <span className="font-label-caps text-xs text-primary font-bold tracking-[0.2em] uppercase">
+                            Staff Oficial
+                        </span>
+                    </div>
+                    <h1 className="font-display-lg text-5xl md:text-7xl text-white font-black mb-6 tracking-tighter uppercase leading-none drop-shadow-xl">
+                        Nossa <span className="text-primary">Equipe</span>
                     </h1>
                     <p className="text-gray-400 font-body-lg text-lg leading-relaxed max-w-2xl mx-auto">
                         Conheça os responsáveis por manter a ordem no servidor. Utilize o formulário para entrar em contato diretamente com nossos administradores ou acesse o Discord.

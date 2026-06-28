@@ -15,7 +15,7 @@ type Produto = {
     comandos: string[];
     imagem: string | null;
     ativo: boolean;
-    ordem: number; // NOVO CAMPO
+    ordem: number; 
 };
 
 export default function AdminProdutos() {
@@ -29,6 +29,10 @@ export default function AdminProdutos() {
     const [filtroServidor, setFiltroServidor] = useState('TODOS');
     const [filtroCategoria, setFiltroCategoria] = useState('TODOS');
 
+    // ESTADOS DA META MENSAL
+    const [metaValor, setMetaValor] = useState<string>('');
+    const [isSavingMeta, setIsSavingMeta] = useState(false);
+
     const [formData, setFormData] = useState({
         nome: '',
         descricao: '',
@@ -41,31 +45,60 @@ export default function AdminProdutos() {
         ativo: true
     });
 
-    const carregarProdutos = async () => {
+    const carregarDados = async () => {
+        setIsLoadingProdutos(true);
         try {
-            const res = await fetch('/api/produtos');
-            if (res.ok) {
-                const data = await res.json();
-                // Garante que exista ordem visual mesmo em produtos antigos
+            // Busca Produtos
+            const resProd = await fetch('/api/produtos');
+            if (resProd.ok) {
+                const data = await resProd.json();
                 const dataComOrdem = data.map((p: any, index: number) => ({
                     ...p,
                     ordem: p.ordem ?? index
                 }));
                 setProdutos(dataComOrdem);
-            } else if (res.status === 403 || res.status === 401) {
+            } else if (resProd.status === 403 || resProd.status === 401) {
                 alert('Acesso negado. Redirecionando...');
                 router.push('/');
             }
+
+            // Busca Meta Mensal
+            const resMeta = await fetch('/api/meta-mensal');
+            if (resMeta.ok) {
+                const dataMeta = await resMeta.json();
+                setMetaValor(dataMeta.metaValor.toString());
+            }
         } catch (error) {
-            console.error('Erro ao buscar produtos:', error);
+            console.error('Erro ao buscar dados:', error);
         } finally {
             setIsLoadingProdutos(false);
         }
     };
 
     useEffect(() => {
-        carregarProdutos();
+        carregarDados();
     }, []);
+
+    const handleSalvarMeta = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSavingMeta(true);
+        try {
+            const res = await fetch('/api/meta-mensal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ valor: parseFloat(metaValor) })
+            });
+            if (res.ok) {
+                alert('Meta mensal atualizada com sucesso!');
+            } else {
+                alert('Erro ao atualizar a meta.');
+            }
+        } catch (error) {
+            alert('Erro de conexão com o servidor.');
+        } finally {
+            setIsSavingMeta(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,7 +118,7 @@ export default function AdminProdutos() {
             if (res.ok) {
                 alert(editingId !== null ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
                 limparFormulario();
-                carregarProdutos();
+                carregarDados();
                 router.refresh();
             } else {
                 const data = await res.json();
@@ -124,7 +157,7 @@ export default function AdminProdutos() {
         try {
             const res = await fetch(`/api/produtos?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
-                carregarProdutos();
+                carregarDados();
                 router.refresh();
             } else {
                 const data = await res.json();
@@ -152,29 +185,22 @@ export default function AdminProdutos() {
         return matchesBusca && matchesServidor && matchesCategoria;
     });
 
-    // ==========================================
-    // LÓGICA DE REORDENAÇÃO ARRASTAR E SOLTAR
-    // ==========================================
     const moverProduto = async (index: number, direcao: 'up' | 'down') => {
         if (direcao === 'up' && index === 0) return;
         if (direcao === 'down' && index === produtosFiltrados.length - 1) return;
 
-        // Copia a lista filtrada
         const novosProdutos = [...produtosFiltrados];
         const targetIndex = direcao === 'up' ? index - 1 : index + 1;
 
-        // Troca visualmente
         const temp = novosProdutos[index];
         novosProdutos[index] = novosProdutos[targetIndex];
         novosProdutos[targetIndex] = temp;
 
-        // Recalcula a ordem
         const itensParaAtualizar = novosProdutos.map((p, i) => ({
             id: p.id,
             ordem: i
         }));
 
-        // Atualiza a UI imediatamente para não ter delay
         const produtosAtualizados = produtos.map(p => {
             const updated = itensParaAtualizar.find(u => u.id === p.id);
             return updated ? { ...p, ordem: updated.ordem } : p;
@@ -182,7 +208,6 @@ export default function AdminProdutos() {
 
         setProdutos(produtosAtualizados);
 
-        // Salva silenciosamente no banco
         try {
             await fetch('/api/produtos', {
                 method: 'PATCH',
@@ -196,8 +221,6 @@ export default function AdminProdutos() {
 
     return (
         <main className="min-h-screen bg-background pt-32 pb-20 px-6 relative overflow-hidden">
-            <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
-
             <div className="max-w-[1400px] mx-auto relative z-10">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 border-b border-white/10 pb-6">
                     <div>
@@ -217,8 +240,34 @@ export default function AdminProdutos() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
                     
                     <div className="lg:col-span-5 h-fit">
+                        
+                        {/* ===================== NOVO CARD DA META MENSAL ===================== */}
+                        <div className="bg-[#121316] border border-white/5 rounded-[2rem] p-6 mb-8 shadow-xl">
+                            <h2 className="text-lg font-black text-white uppercase tracking-wider flex items-center gap-2 mb-4">
+                                <span className="material-symbols-outlined text-primary">monitoring</span> Meta Mensal (R$)
+                            </h2>
+                            <form onSubmit={handleSalvarMeta} className="flex gap-3">
+                                <div className="relative flex-grow">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">R$</span>
+                                    <input 
+                                        required 
+                                        type="number" 
+                                        step="0.01" 
+                                        min="0" 
+                                        value={metaValor} 
+                                        onChange={e => setMetaValor(e.target.value)} 
+                                        className="w-full rounded-xl border border-white/10 bg-black/40 pl-10 pr-4 py-3 text-sm text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all" 
+                                        placeholder="Ex: 500.00" 
+                                    />
+                                </div>
+                                <button type="submit" disabled={isSavingMeta} className="bg-primary text-[#0A1A08] px-5 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:scale-105 transition-all disabled:opacity-50 shrink-0 shadow-lg">
+                                    {isSavingMeta ? '...' : 'Salvar'}
+                                </button>
+                            </form>
+                        </div>
+                        {/* ==================================================================== */}
+
                         <div className={`bg-[#121316] border rounded-[2rem] p-6 md:p-8 relative overflow-hidden shadow-2xl transition-all duration-500 ${editingId !== null ? 'border-primary/50 shadow-[0_0_30px_rgba(140,218,112,0.1)]' : 'border-white/5'}`}>
-                            
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] pointer-events-none"></div>
 
                             <div className="flex justify-between items-center mb-6 relative z-10">

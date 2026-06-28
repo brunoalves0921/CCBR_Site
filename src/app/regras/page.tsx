@@ -98,7 +98,7 @@ export default function Regras() {
   const regrasFiltradas = regras.filter(r => r.categoria === categoriaAtiva);
 
   return (
-    <main className="min-h-screen pt-32 pb-24 bg-black relative overflow-hidden">
+    <main className="min-h-screen pt-32 pb-24 bg-background relative overflow-hidden">
       
       <style>{`
         @keyframes fadeSlide {
@@ -110,8 +110,6 @@ export default function Regras() {
         }
       `}</style>
 
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
-
       <div className="max-w-[1340px] mx-auto px-6 md:px-8 relative z-10">
         
         <header className="mb-14 text-center flex flex-col items-center">
@@ -122,7 +120,7 @@ export default function Regras() {
             </span>
           </div>
           <h1 className="font-display-lg text-5xl md:text-7xl text-white font-black mb-6 tracking-tighter uppercase leading-none drop-shadow-xl">
-            Nossas <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-300">Regras</span>
+            Nossas <span className="text-primary">Regras</span>
           </h1>
           <p className="text-gray-400 font-body-lg text-base md:text-lg leading-relaxed max-w-2xl">
             Para mantermos a melhor experiência de Minecraft do Brasil, precisamos da colaboração de todos. O desconhecimento não isenta de punições.
@@ -133,7 +131,7 @@ export default function Regras() {
           
           <aside className="lg:col-span-4 space-y-6">
             <div className="sticky top-32 space-y-6">
-              <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-white/5 shadow-xl">
+              <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-outline-variant shadow-xl">
                 <h3 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase mb-4 ml-1">
                   Tópicos de Regras
                 </h3>
@@ -148,7 +146,7 @@ export default function Regras() {
                         className={`flex items-center gap-3 px-5 py-4 text-left font-bold rounded-2xl transition-all text-sm ${
                           categoriaAtiva === cat 
                           ? 'bg-primary/10 text-primary border border-primary/20 shadow-inner translate-x-2' 
-                          : 'bg-black/20 border border-transparent text-gray-400 hover:bg-white/5 hover:border-white/5 hover:text-white'
+                          : 'bg-surface-container-lowest/50 border border-transparent text-gray-400 hover:bg-white/5 hover:border-white/5 hover:text-white'
                         }`}
                       >
                         <span className="material-symbols-outlined text-lg">{getCategoryIcon(cat)}</span>
@@ -159,23 +157,31 @@ export default function Regras() {
                 )}
               </div>
 
-              <div className="bg-[#121316] p-6 rounded-[1.75rem] border border-[#ffdb3c]/30 shadow-[0_10px_30px_rgba(255,219,60,0.05)] relative overflow-hidden group">
-                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+              <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-white/5 relative overflow-hidden group hover:border-[#ffdb3c]/30 transition-all duration-500 shadow-xl">
+                
+                {/* Ícone Gigante no Fundo (Apenas detalhe visual discreto) */}
+                <div className="absolute -right-4 -bottom-4 opacity-[0.02] group-hover:opacity-5 group-hover:scale-105 transition-all duration-500">
                   <span className="material-symbols-outlined text-9xl text-[#ffdb3c]">gavel</span>
                 </div>
+                
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4 text-[#ffdb3c]">
-                    <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
-                    <h3 className="font-headline-md text-lg font-black uppercase tracking-tight">O Bom Senso</h3>
+                  {/* Cabeçalho do Card */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-[#ffdb3c]/10 flex items-center justify-center border border-[#ffdb3c]/20 shrink-0">
+                      <span className="material-symbols-outlined text-xl text-[#ffdb3c]" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black text-[#ffdb3c] tracking-widest uppercase mb-0.5">Diretriz</span>
+                      <h3 className="font-display-lg text-lg font-black uppercase tracking-tight text-white leading-none">
+                        O Bom Senso
+                      </h3>
+                    </div>
                   </div>
-                  <p className="font-body-sm text-gray-400 text-xs mb-5 leading-relaxed">
-                    Nossas regras não cobrem todas as situações. O <strong className="text-white">bom senso</strong> é esperado de todos.
+                  
+                  {/* Descrição */}
+                  <p className="font-body-sm text-gray-400 text-xs md:text-sm leading-relaxed">
+                    Nossas regras não cobrem absolutamente todas as situações possíveis. O uso do <strong className="text-white">bom senso</strong> é fundamental e esperado de todos os jogadores dentro da nossa comunidade.
                   </p>
-                  <div className="flex gap-1">
-                    <div className="h-1 flex-1 bg-[#ffdb3c] rounded-l-full shadow-[0_0_10px_rgba(255,219,60,0.5)]"></div>
-                    <div className="h-1 flex-1 bg-[#ffdb3c] shadow-[0_0_10px_rgba(255,219,60,0.5)]"></div>
-                    <div className="h-1 flex-1 bg-[#ffdb3c]/20 rounded-r-full"></div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -187,7 +193,7 @@ export default function Regras() {
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
               </div>
             ) : (
-              <div className="bg-surface-container-low p-8 md:p-10 rounded-[2.5rem] border border-white/5 shadow-2xl min-h-[600px]">
+              <div className="bg-surface-container-low p-8 md:p-10 rounded-[2.5rem] border border-outline-variant shadow-2xl min-h-[600px]">
                 
                 <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-8">
                   <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-inner">
@@ -208,9 +214,9 @@ export default function Regras() {
                     regrasFiltradas.map((regra) => {
                       const styles = getPunishmentStyles(regra.nivelPunicao);
                       return (
-                        <div key={regra.id} className={`relative group bg-[#121316] p-6 rounded-2xl border border-white/5 bg-white/[0.01] transition-all duration-300 shadow-lg ${styles.cardHover}`}>
+                        <div key={regra.id} className={`relative group bg-surface-container p-6 rounded-2xl border border-outline-variant transition-all duration-300 shadow-lg ${styles.cardHover}`}>
                           
-                          <div className={`absolute -left-[45px] md:-left-[53px] top-8 w-5 h-5 rounded-full bg-[#121316] border-4 border-white/20 group-hover:scale-125 transition-all duration-300 ${styles.dotHover}`}></div>
+                          <div className={`absolute -left-[45px] md:-left-[53px] top-8 w-5 h-5 rounded-full bg-surface-container border-4 border-white/20 group-hover:scale-125 transition-all duration-300 ${styles.dotHover}`}></div>
                           
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                             <h3 className="text-white font-bold text-lg md:text-xl flex items-center gap-3">
@@ -239,33 +245,44 @@ export default function Regras() {
               </div>
             )}
 
-            <section className="bg-surface-container-high p-8 md:p-10 rounded-[2rem] border border-outline-variant mt-10 shadow-xl">
+            <section className="bg-surface-container p-8 md:p-10 rounded-[2rem] border border-outline-variant mt-10 shadow-xl">
               <h2 className="font-display-lg text-2xl font-black uppercase text-white mb-8 text-center">Níveis de Punição</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#121316] p-6 rounded-2xl border-t-4 border-yellow-500 flex flex-col items-center text-center hover:-translate-y-1 transition-transform">
+                
+                {/* ADVERTÊNCIA */}
+                <div className="bg-surface-container-low p-6 rounded-2xl border border-yellow-500/30 hover:border-yellow-500 flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 shadow-lg">
                   <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center mb-4">
                     <span className="material-symbols-outlined">warning</span>
                   </div>
                   <h4 className="text-white font-bold uppercase tracking-widest text-sm mb-2">Advertência</h4>
-                  <p className="text-gray-400 text-xs leading-relaxed">Avisos verbais ou silenciamento (mute) temporário no chat.</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    Avisos verbais ou silenciamento (mute) temporário no chat. A reincidência frequente pode agravar a punição para uma suspensão.
+                  </p>
                 </div>
 
-                <div className="bg-[#121316] p-6 rounded-2xl border-t-4 border-orange-500 flex flex-col items-center text-center hover:-translate-y-1 transition-transform">
+                {/* SUSPENSÃO */}
+                <div className="bg-surface-container-low p-6 rounded-2xl border border-orange-500/30 hover:border-orange-500 flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 shadow-lg">
                   <div className="w-12 h-12 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4">
                     <span className="material-symbols-outlined">timer</span>
                   </div>
                   <h4 className="text-white font-bold uppercase tracking-widest text-sm mb-2">Suspensão</h4>
-                  <p className="text-gray-400 text-xs leading-relaxed">Banimento temporário do servidor (de 1 a 30 dias).</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    Banimento temporário do servidor (de 1 a 30 dias). Dependendo da gravidade da infração ou do seu histórico, pode evoluir para permanente.
+                  </p>
                 </div>
 
-                <div className="bg-[#121316] p-6 rounded-2xl border-t-4 border-red-500 flex flex-col items-center text-center hover:-translate-y-1 transition-transform">
+                {/* PERMANENTE */}
+                <div className="bg-surface-container-low p-6 rounded-2xl border border-red-500/30 hover:border-red-500 flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 shadow-lg">
                   <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
                     <span className="material-symbols-outlined">block</span>
                   </div>
                   <h4 className="text-white font-bold uppercase tracking-widest text-sm mb-2">Permanente</h4>
-                  <p className="text-gray-400 text-xs leading-relaxed">Exclusão definitiva da conta e IP da nossa rede.</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    Exclusão definitiva da conta e bloqueio de IP. Aplicada em casos de infrações gravíssimas, uso de cheats ou acúmulo de suspensões.
+                  </p>
                 </div>
+
               </div>
             </section>
 

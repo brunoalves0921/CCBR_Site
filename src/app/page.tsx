@@ -68,6 +68,25 @@ export default function Home() {
   return (
     <main className="mt-[80px]">
       
+      {/* Estilos da Animação de Transição das Notícias */}
+      <style>{`
+        @keyframes newsTransition {
+          from { 
+            opacity: 0; 
+            transform: translateY(15px) scale(0.98);
+            filter: blur(4px);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+          }
+        }
+        .animate-news-transition {
+          animation: newsTransition 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+      `}</style>
+
       {/* ================= HERO SECTION ================= */}
       <section className="relative min-h-[80vh] md:min-h-[800px] flex items-center justify-center overflow-hidden pt-32 pb-24">
         <div className="absolute inset-0 z-0">
@@ -149,8 +168,10 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+            
+            {/* O SEGREDO ESTÁ AQUI: key={activeIndex} e a classe animate-news-transition */}
             {noticiaDestaque && (
-              <div className="lg:col-span-8 flex flex-col overflow-hidden">
+              <div key={activeIndex} className="lg:col-span-8 flex flex-col overflow-hidden animate-news-transition">
                 <Link href={`/noticia/${noticiaDestaque.id}`} className="group block w-full">
                   <div className="w-full aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden relative mb-8">
                     {noticiaDestaque.imagem ? (
@@ -248,7 +269,6 @@ export default function Home() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
-          {/* Card 1: Survival */}
           <Link href="/modos/survival" className="group relative w-full h-[450px] rounded-[2rem] overflow-hidden border border-white/10 hover:border-primary/50 transition-all duration-500 shadow-2xl">
             <img src="/banner.webp" alt="Survival Vanilla" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent opacity-90 group-hover:opacity-95 transition-opacity"></div>
@@ -269,7 +289,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Card 2: Skyblock */}
           <Link href="/modos/skyblock" className="group relative w-full h-[450px] rounded-[2rem] overflow-hidden border border-white/10 hover:border-secondary-fixed/50 transition-all duration-500 shadow-2xl">
             <img src="/banner.webp" alt="Skyblock" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent opacity-90 group-hover:opacity-95 transition-opacity"></div>
@@ -290,7 +309,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Card 3: BedWars */}
           <Link href="/modos/bedwars" className="group relative w-full h-[450px] rounded-[2rem] overflow-hidden border border-white/10 hover:border-red-400/50 transition-all duration-500 shadow-2xl">
             <img src="/banner.webp" alt="BedWars" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent opacity-90 group-hover:opacity-95 transition-opacity"></div>

@@ -37,6 +37,14 @@ export default function Loja() {
     
     const [topDoadores, setTopDoadores] = useState<Doador[]>([]);
     
+    // NOVO ESTADO DA META MENSAL
+    const [metaDados, setMetaDados] = useState({
+        percentualExato: 0,
+        percentualLayout: 0,
+        metaValor: 0,
+        totalArrecadado: 0
+    });
+    
     const [currentPage, setCurrentPage] = useState<number>(1);
     const itemsPerPage = 6; 
     
@@ -45,6 +53,7 @@ export default function Loja() {
     const router = useRouter();
 
     useEffect(() => {
+        // Busca Produtos
         fetch('/api/produtos')
             .then(res => res.json())
             .then(data => {
@@ -61,6 +70,7 @@ export default function Loja() {
             })
             .catch(() => { setProdutos([]); setIsLoading(false); });
 
+        // Busca Top Doadores
         fetch('/api/top-doadores')
             .then(res => res.json())
             .then(data => {
@@ -68,19 +78,24 @@ export default function Loja() {
                 else {
                     setTopDoadores([
                         { nick: "SucriilhsBR", total: 1500.00 },
-                        { nick: "Notch", total: 850.50 },
-                        { nick: "Jeb_", total: 500.00 },
-                        { nick: "Dinnerbone", total: 350.00 },
-                        { nick: "Dream", total: 120.00 }
+                        { nick: "Notch", total: 850.50 }
                     ]);
                 }
             })
             .catch(() => {
-                setTopDoadores([
-                    { nick: "SucriilhsBR", total: 1500.00 },
-                    { nick: "Notch", total: 850.50 },
-                ]);
+                setTopDoadores([{ nick: "SucriilhsBR", total: 1500.00 }]);
             });
+
+        // BUSCA A META MENSAL DA API
+        fetch('/api/meta-mensal')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.percentualExato !== undefined) {
+                    setMetaDados(data);
+                }
+            })
+            .catch(console.error);
+
     }, []);
 
     useEffect(() => { setCurrentPage(1); }, [categoriaAtiva, servidorAtivo]);
@@ -225,6 +240,9 @@ export default function Loja() {
         );
     };
 
+    // Calcula os blocos visuais de acordo com o percentual!
+    const blocosAtivos = Math.floor((metaDados.percentualLayout / 100) * 15);
+
     return (
         <>
             <style>{`
@@ -336,20 +354,24 @@ export default function Loja() {
             )}
 
             <main className="min-h-screen pt-32 pb-24 bg-background relative overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
-
                 <div className="max-w-[1340px] mx-auto px-6 md:px-8 relative z-10">
                     
-                    {/* Header Limpo e Focado */}
+                    {/* Header */}
                     <header className="mb-10 text-center flex flex-col items-center">
+                        <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-md">
+                            <span className="material-symbols-outlined text-sm text-primary">storefront</span>
+                            <span className="font-label-caps text-xs text-primary font-bold tracking-[0.2em] uppercase">
+                                Loja Oficial
+                            </span>
+                        </div>
+                        
                         <h1 className="font-display-lg text-5xl md:text-7xl text-white font-black mb-4 tracking-tighter uppercase leading-none">
-                            Adquira <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-300 drop-shadow-[0_0_15px_rgba(140,218,112,0.3)]">Cash</span>
+                            Adquira <span className="text-primary">Cash</span>
                         </h1>
                         <p className="text-gray-400 font-body-lg text-base md:text-lg leading-relaxed max-w-2xl mb-8">
                             Apoie o servidor e receba benefícios exclusivos. Utilize o Cash diretamente no jogo através do comando <strong className="text-white bg-white/10 px-2 py-0.5 rounded-md text-sm border border-white/5">/loja</strong>.
                         </p>
                         
-                        {/* Filtros de Servidor centralizados logo abaixo do título */}
                         <div className="inline-flex flex-wrap gap-2 p-1.5 bg-surface-container-low/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-lg">
                             {servidores.map((srv) => (
                                 <button
@@ -370,10 +392,9 @@ export default function Loja() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         
-                        {/* SIDEBAR ESQUERDA: Agora contém as Categorias, Meta Mensal e os Top Doadores */}
+                        {/* SIDEBAR ESQUERDA */}
                         <aside className="lg:col-span-3 space-y-6">
                             
-                            {/* Bloco 1: Categorias */}
                             <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-white/5 shadow-xl">
                                 <h3 className="text-[#6B7280] font-bold text-[11px] tracking-widest uppercase mb-4 ml-1">
                                     Categorias
@@ -394,9 +415,8 @@ export default function Loja() {
                                 </nav>
                             </div>
 
-                            {/* Bloco 2: Meta Mensal */}
+                            {/* ===================== META MENSAL DINÂMICA ===================== */}
                             <div className="bg-surface-container-low p-6 rounded-[1.75rem] border border-primary/20 relative overflow-hidden text-left shadow-xl">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(140,218,112,0.08),transparent_60%)] pointer-events-none"></div>
                                 <div className="relative z-10">
                                     <h3 className="font-headline-md text-lg font-black uppercase tracking-tight text-white mb-2">
                                         Meta Mensal
@@ -405,12 +425,12 @@ export default function Loja() {
                                         Sua contribuição ajuda a manter nossos servidores online e com ótima estabilidade.
                                     </p>
                                     <div className="flex items-baseline justify-between mb-2">
-                                        <span className="text-3xl font-black text-white leading-none">35%</span>
+                                        <span className="text-3xl font-black text-white leading-none">{metaDados.percentualExato}%</span>
                                         <span className="text-[9px] uppercase tracking-[0.2em] text-primary font-black">Em andamento</span>
                                     </div>
                                     <div className="flex gap-1 h-2.5">
                                         {Array.from({ length: 15 }).map((_, i) => (
-                                            <div key={i} className={`flex-1 transition-all duration-300 ${i === 0 ? "rounded-l-full" : ""} ${i === 14 ? "rounded-r-full" : ""} ${i < 5 ? "bg-primary shadow-[0_0_8px_rgba(140,218,112,0.4)]" : "bg-white/10"}`} />
+                                            <div key={i} className={`flex-1 transition-all duration-300 ${i === 0 ? "rounded-l-full" : ""} ${i === 14 ? "rounded-r-full" : ""} ${i < blocosAtivos ? "bg-primary shadow-[0_0_8px_rgba(140,218,112,0.4)]" : "bg-white/10"}`} />
                                         ))}
                                     </div>
                                 </div>
@@ -427,7 +447,6 @@ export default function Loja() {
                                     </div>
                                     
                                     <div className="flex flex-col gap-3">
-                                        {/* Mostra apenas os Top 5 na Sidebar para não ficar enorme */}
                                         {topDoadores.slice(0, 5).map((doador, index) => (
                                             <div key={doador.nick} className="flex items-center gap-3 bg-black/30 p-2.5 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group">
                                                 <div className="relative w-10 h-10 shrink-0">
@@ -454,7 +473,7 @@ export default function Loja() {
 
                         </aside>
 
-                        {/* MEIO: Lista de Produtos (8 colunas) */}
+                        {/* MEIO: Lista de Produtos */}
                         <div className="lg:col-span-8 flex flex-col w-full">
                             {isLoading ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
@@ -477,7 +496,7 @@ export default function Loja() {
                             )}
                         </div>
 
-                        {/* DIREITA: Paginação Sticky (1 coluna) */}
+                        {/* DIREITA: Paginação Sticky */}
                         {totalPages > 1 && !isLoading && (
                             <aside className="hidden lg:flex lg:col-span-1 flex-col items-center relative h-full">
                                 <div className="sticky top-[30vh] flex flex-col items-center bg-surface-container-low/70 backdrop-blur-xl p-2.5 rounded-full border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] gap-3 z-20">

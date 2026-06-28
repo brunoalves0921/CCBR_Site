@@ -33,6 +33,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Pedido não encontrado.' }, { status: 404 });
         }
 
+        // ==========================================
+        // CENÁRIO A: COMPRA APROVADA
+        // ==========================================
         if (status === 'approved' && pedido.status !== 'APROVADO') {
             await prisma.$transaction(async (tx) => {
                 await tx.pedido.update({
@@ -46,13 +49,16 @@ export async function POST(request: Request) {
 
                 const entregas = [];
                 for (const item of pedido.itens) {
-                    for (const comando of item.produto.comandos) {
+                    for (const comandoRaw of item.produto.comandos) {
+                        // Substitui a tag {player} pelo nick real do jogador
+                        const comandoFormatado = comandoRaw.replace(/{player}/g, pedido.playerNick);
+                        
                         for (let i = 0; i < item.quantidade; i++) {
                             entregas.push({
                                 pedidoId: pedido.id,
                                 playerNick: pedido.playerNick,
                                 servidor: item.produto.servidor,
-                                comando: comando
+                                comando: comandoFormatado
                             });
                         }
                     }
@@ -62,12 +68,40 @@ export async function POST(request: Request) {
                     await tx.filaEntrega.createMany({ data: entregas });
                 }
             });
-        } else if (status === 'cancelled' || status === 'refunded') {
+        } 
+        // =========================================================
+        // CENÁRIO B: REEMBOLSO / CHARGEBACK (PUNIÇÃO AUTOMÁTICA)
+        // =========================================================
+        else if ((status === 'refunded' || status === 'charged_back') && pedido.status !== 'REEMBOLSADO') {
+            await prisma.$transaction(async (tx) => {
+                // 1. Atualiza o status financeiro no site
+                await tx.pedido.update({
+                    where: { id: pedido.id },
+                    data: { status: 'REEMBOLSADO' }
+                });
+
+                // 2. Aplica o Banimento em todos os servidores (GLOBAL)
+                await tx.filaEntrega.create({
+                    data: {
+                        pedidoId: pedido.id,
+                        playerNick: pedido.playerNick,
+                        servidor: 'GLOBAL', 
+                        comando: `ban ${pedido.playerNick} Chargeback ou Reembolso Ilegal (Pedido #${pedido.id})`,
+                        status: 'AGUARDANDO'
+                    }
+                });
+            });
+            
+            console.log(`[SEGURANÇA] Jogador ${pedido.playerNick} punido por chargeback/reembolso.`);
+        } 
+        // ==========================================
+        // CENÁRIO C: CANCELAMENTO COMUM (S/ PUNIÇÃO)
+        // ==========================================
+        else if (status === 'cancelled' && pedido.status !== 'CANCELADO') {
+            // Apenas cancela o pedido (ex: PIX expirou, boleto não pago)
             await prisma.pedido.update({
                 where: { id: pedido.id },
-                data: {
-                    status: status === 'cancelled' ? 'CANCELADO' : 'REEMBOLSADO'
-                }
+                data: { status: 'CANCELADO' }
             });
         }
 
